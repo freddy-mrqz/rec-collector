@@ -94,26 +94,6 @@ curl -X POST http://127.0.0.1:8000/api/v1/records \
 curl http://127.0.0.1:8000/api/v1/records
 ```
 
-## Project Structure
-
-```
-rec-collector/
-├── app/
-│   ├── api/
-│   │   ├── __init__.py      # Router aggregation
-│   │   └── records.py       # Record endpoints
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── record.py        # SQLAlchemy model
-│   ├── schemas/
-│   │   ├── __init__.py
-│   │   └── record.py        # Pydantic schemas
-│   ├── database.py          # Database configuration
-│   └── main.py              # Application entry point
-├── requirements.txt
-└── README.md
-```
-
 ## License
 
 MIT
