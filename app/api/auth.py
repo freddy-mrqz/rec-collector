@@ -9,6 +9,7 @@ from app.models.user import User
 from app.schemas import Token, UserRegister
 from app.schemas.user import User as UserSchema
 from app.core.security import verify_password, get_password_hash, create_access_token
+from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -69,3 +70,9 @@ def login(
     access_token = create_access_token(data={"sub": str(user.id)})
 
     return Token(access_token=access_token)
+
+
+@router.get("/me", response_model=UserSchema)
+def get_me(current_user: Annotated[User, Depends(get_current_user)]):
+    """Get current authenticated user's profile."""
+    return current_user

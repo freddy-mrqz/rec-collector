@@ -1,20 +1,24 @@
 # rec-collector
 
-A FastAPI application for managing your vinyl record collection. Track your records, log plays, and get recommendations for what to spin next or add to your collection.
+A FastAPI application for managing your vinyl record collection. Track your records, import from Discogs, and manage your collection with ease.
 
 ## Features
 
+- **User Authentication** — Register and login with JWT-based authentication
 - **Digital Collection Management** — Catalog your vinyl records with detailed metadata (artist, title, label, catalog number, condition, purchase info)
+- **Discogs Integration** — Connect your Discogs account and import your entire collection with one click
+- **Multi-user Support** — Each user has their own private collection
 - **Play Tracking** — Log when you play records to see listening habits and identify neglected gems *(coming soon)*
 - **Play Recommendations** — Get suggestions based on what you haven't played recently, mood, or genre *(coming soon)*
-- **Purchase Recommendations** — Discover new records based on your collection and listening patterns *(coming soon)*
-- **Discogs Integration** — Link records to Discogs for additional metadata *(coming soon)*
 
 ## Tech Stack
 
 - **FastAPI** — Modern async Python web framework
 - **Pydantic** — Data validation and serialization
 - **SQLAlchemy** — ORM for database operations
+- **python-jose** — JWT token handling
+- **passlib** — Password hashing with bcrypt
+- **python3-discogs-client** — Discogs API integration
 - **Uvicorn** — ASGI server
 
 ## Getting Started
@@ -23,6 +27,7 @@ A FastAPI application for managing your vinyl record collection. Track your reco
 
 - Python 3.10+
 - pip
+- Discogs developer account (for collection import feature)
 
 ### Installation
 
@@ -47,6 +52,16 @@ A FastAPI application for managing your vinyl record collection. Track your reco
    pip install -r requirements.txt
    ```
 
+5. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit `.env` and set:
+   - `SECRET_KEY` — Generate with `openssl rand -hex 32`
+   - `TOKEN_ENCRYPTION_KEY` — Generate with `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`
+   - `DISCOGS_CONSUMER_KEY` and `DISCOGS_CONSUMER_SECRET` — Get from [Discogs Developer Settings](https://www.discogs.com/settings/developers)
+
 ### Running the Application
 
 Start the development server:
@@ -65,20 +80,64 @@ Once running, visit:
 
 ## API Endpoints
 
+### Authentication
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/records` | List all records |
+| POST | `/api/v1/auth/register` | Create a new account |
+| POST | `/api/v1/auth/login` | Login and get JWT token |
+| GET | `/api/v1/auth/me` | Get current user profile |
+
+### Records (requires authentication)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/records` | List your records |
 | POST | `/api/v1/records` | Add a new record |
 | GET | `/api/v1/records/{id}` | Get a specific record |
 | PUT | `/api/v1/records/{id}` | Update a record |
 | DELETE | `/api/v1/records/{id}` | Delete a record |
+
+### Discogs Integration (requires authentication)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/discogs/status` | Check Discogs connection status |
+| GET | `/api/v1/discogs/connect` | Start OAuth flow (returns authorization URL) |
+| GET | `/api/v1/discogs/callback` | OAuth callback (Discogs redirects here) |
+| POST | `/api/v1/discogs/import` | Import collection from Discogs |
+| POST | `/api/v1/discogs/disconnect` | Disconnect Discogs account |
+
+### Health
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
 | GET | `/health` | Health check |
 
 ## Example Usage
 
-**Add a record:**
+### Register and Login
+
 ```bash
+# Register a new user
+curl -X POST http://127.0.0.1:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "username": "vinyllover", "password": "securepass123"}'
+
+# Login to get token
+curl -X POST http://127.0.0.1:8000/api/v1/auth/login \
+  -d "username=vinyllover&password=securepass123"
+```
+
+### Manage Records
+
+```bash
+# Set your token
+TOKEN="your-jwt-token-here"
+
+# Add a record
 curl -X POST http://127.0.0.1:8000/api/v1/records \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Kind of Blue",
@@ -87,11 +146,23 @@ curl -X POST http://127.0.0.1:8000/api/v1/records \
     "label": "Columbia",
     "media_condition": "Very Good Plus"
   }'
+
+# List your records
+curl -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:8000/api/v1/records
 ```
 
-**List all records:**
+### Import from Discogs
+
 ```bash
-curl http://127.0.0.1:8000/api/v1/records
+# Start OAuth flow
+curl -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:8000/api/v1/discogs/connect
+# Visit the returned authorize_url in your browser
+
+# After authorizing, import your collection
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:8000/api/v1/discogs/import
 ```
 
 ## License
