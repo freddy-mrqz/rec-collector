@@ -37,6 +37,8 @@ class RecordUpdate(BaseModel):
 
 class Record(RecordBase):
     id: int
+    user_id: Optional[int] = None
+    imported_from_discogs: bool = False
     added_at: datetime
     updated_at: Optional[datetime] = None
 
