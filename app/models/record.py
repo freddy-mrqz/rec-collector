@@ -24,6 +24,7 @@ class Record(Base):
     release_year = Column(Integer, nullable=True)
     label = Column(String, nullable=True)
     catalog_number = Column(String, nullable=True)
+    genre = Column(String, nullable=True)
 
     # Collection-specific fields
     media_condition = Column(String, nullable=True)  # e.g., "Mint", "Very Good", etc.

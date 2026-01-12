@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import discogs_client
+import traceback
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -129,6 +130,9 @@ class DiscogsService:
                 # Extract artist name(s)
                 artists = ", ".join([a.name for a in release.artists]) if release.artists else "Unknown Artist"
 
+                # Extract genres
+                genres = ", ".join(g for g in release.genres) if release.genres else "N/A"
+
                 # Extract label info
                 label = None
                 catalog_number = None
@@ -140,6 +144,7 @@ class DiscogsService:
                     # Update existing record with Discogs data
                     existing.title = release.title
                     existing.artist = artists
+                    existing.genre = genres
                     existing.release_year = release.year if release.year else None
                     existing.label = label
                     existing.catalog_number = catalog_number
@@ -152,6 +157,7 @@ class DiscogsService:
                         discogs_id=discogs_id,
                         title=release.title,
                         artist=artists,
+                        genre=genres,
                         release_year=release.year if release.year else None,
                         label=label,
                         catalog_number=catalog_number,
@@ -162,6 +168,8 @@ class DiscogsService:
 
             except Exception:
                 stats["errors"] += 1
+                print('Error importing record: ')
+                traceback.print_exc()
                 continue
 
         # Update last sync time

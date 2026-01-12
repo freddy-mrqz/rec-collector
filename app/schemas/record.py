@@ -9,6 +9,7 @@ class RecordBase(BaseModel):
     discogs_id: Optional[str] = None
     release_year: Optional[int] = Field(None, ge=1900, le=2100)
     label: Optional[str] = None
+    genre: Optional[str] = None
     catalog_number: Optional[str] = None
     media_condition: Optional[str] = None
     sleeve_condition: Optional[str] = None
@@ -27,6 +28,7 @@ class RecordUpdate(BaseModel):
     discogs_id: Optional[str] = None
     release_year: Optional[int] = Field(None, ge=1900, le=2100)
     label: Optional[str] = None
+    genre: Optional[str] = None
     catalog_number: Optional[str] = None
     media_condition: Optional[str] = None
     sleeve_condition: Optional[str] = None
