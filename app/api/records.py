@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 
 from app.schemas import Record, RecordCreate, RecordUpdate
 from app.database import get_db
@@ -45,6 +46,26 @@ def list_records(
         .all()
     )
     return records
+
+
+@router.get("/random", response_model=Record)
+def get_random_record(
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """Return a random record from the authenticated user's collection."""
+    record = (
+        db.query(RecordModel)
+        .filter(RecordModel.user_id == current_user.id)
+        .order_by(func.random())
+        .first()
+    )
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No records found in your collection",
+        )
+    return record
 
 
 @router.get("/{record_id}", response_model=Record)

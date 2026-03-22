@@ -140,14 +140,32 @@ class DiscogsService:
                     label = release.labels[0].name
                     catalog_number = release.labels[0].catno
 
+                # Extract primary cover image URL
+                image_url = None
+                if release.images:
+                    # Prefer "primary" type, fall back to first image
+                    primary = next((img for img in release.images if img.get("type") == "primary"), None)
+                    img = primary or release.images[0]
+                    image_url = img.get("uri") or img.get("resource_url")
+
+                # Extract original album year from master release
+                original_year = None
+                try:
+                    if release.master and release.master.year:
+                        original_year = release.master.year
+                except Exception:
+                    pass
+
                 if existing:
                     # Update existing record with Discogs data
                     existing.title = release.title
                     existing.artist = artists
                     existing.genre = genres
                     existing.release_year = release.year if release.year else None
+                    existing.original_year = original_year
                     existing.label = label
                     existing.catalog_number = catalog_number
+                    existing.image_url = image_url
                     existing.imported_from_discogs = True
                     stats["updated"] += 1
                 else:
@@ -159,8 +177,10 @@ class DiscogsService:
                         artist=artists,
                         genre=genres,
                         release_year=release.year if release.year else None,
+                        original_year=original_year,
                         label=label,
                         catalog_number=catalog_number,
+                        image_url=image_url,
                         imported_from_discogs=True,
                     )
                     db.add(new_record)

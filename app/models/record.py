@@ -22,9 +22,11 @@ class Record(Base):
     title = Column(String, nullable=False)
     artist = Column(String, nullable=False)
     release_year = Column(Integer, nullable=True)
+    original_year = Column(Integer, nullable=True)  # Year of original album release (master)
     label = Column(String, nullable=True)
     catalog_number = Column(String, nullable=True)
     genre = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)  # Cover image URL from Discogs
 
     # Collection-specific fields
     media_condition = Column(String, nullable=True)  # e.g., "Mint", "Very Good", etc.
